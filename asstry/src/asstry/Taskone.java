@@ -56,9 +56,12 @@ tableEnv.registerTableSource("flightid", flights);
     
     Table orderedresult = airc.join(flig).where("tailnumber = tail_numberflights").select("manufacturer, model");
     
-    Table result = orderedresult.groupBy("model").select("model, model.count as frequency");
-    result.orderBy("model, frequency");
+    
+    Table result = orderedresult.groupBy("model").select("model,model.count as frequency");
+    //result = result.orderBy("frequncy");
     //Table result = orderedresult.select("COUNT(model)");
+    
+    //Table result1 = result.orderBy("frequency.asc").offset(3).select("model, frequency");
     
     // output final result
     result.writeToSink(new CsvTableSink(output_filepath, "\t", 1, WriteMode.OVERWRITE));
@@ -67,7 +70,7 @@ tableEnv.registerTableSource("flightid", flights);
     //System.out.println(env.getExecutionPlan());
 
     // execute the FLink job
-    env.execute("Executing sample1(TableAPI) program");
+    env.execute("Executing program");
 
     
     // alternatively: get execution plan
