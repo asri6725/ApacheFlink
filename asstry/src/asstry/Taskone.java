@@ -1,82 +1,91 @@
 package asstry;
-
-import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.table.api.*;
-import org.apache.flink.table.sources.*;
-import org.apache.flink.table.sinks.*;
-import org.apache.flink.core.fs.FileSystem.WriteMode;
-import org.apache.flink.api.java.utils.ParameterTool;
-
+import org.apache.flink.api.java.DataSet;
+import org.apache.flink.api.java.tuple.Tuple1;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.api.common.operators.Order;
+import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.GroupReduceFunction;
+import org.apache.flink.util.Collector;
 
 
 public class Taskone {
-	
-	
-  public static void main(String[] args) throws Exception {
-    // get output file command line parameter - or use "descan.txt" as default
-    final ParameterTool params = ParameterTool.fromArgs(args);
-    String output_filepath = params.get("output", "C:/Users/Abhi/Desktop/descans.txt");
-    String inpath = "C:/Users/Abhi/Desktop/assignment_data_files/";
 
-    // obtain handle to execution environment
-    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+  @SuppressWarnings("serial")
+public static <R> void main(String[] args) throws Exception {
+
+ 
+    String fileloc = "C:/Users/Abhi/Desktop/assignment_data_files/"; //data file locations
+    String output_filepath = "C:/Users/Abhi/Desktop/taskone.csv"; //result output location
     
-    // get a TableEnvironment
-    BatchTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
-    
-    TableSource aircraft = CsvTableSource.builder().path(inpath+"ontimeperformance_aircrafts.csv").
-    					ignoreFirstLine()
-    					.ignoreParseErrors()
-    					.field("tailnumber", Types.STRING)
-    					.field("useless", Types.STRING)
-    					.field("manufacturer",  Types.STRING)
-    					.field("useless_a1", Types.STRING)
-    					.field("model", Types.STRING)
-    					.build();
-    tableEnv.registerTableSource("tailnumber", aircraft);
-    TableSource flights = CsvTableSource.builder().path(inpath+"ontimeperformance_flights_tiny.csv")
-    		.ignoreFirstLine()
-			.ignoreParseErrors()
-			.field("flight_id", Types.INT)
-			.field("useless1", Types.STRING)
-			.field("useless2", Types.STRING)
-			.field("useless3", Types.STRING)
-			.field("useless4", Types.STRING)
-			.field("useless5", Types.STRING)
-			.field("tail_numberflights", Types.STRING)
-			.build();
-tableEnv.registerTableSource("flightid", flights);
-    
-    Table airc = tableEnv.scan("tailnumber").where("manufacturer = 'CESSNA'");
+    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment(); 
    
-    Table flig = tableEnv.scan("flightid");
+    DataSet<Tuple4<String, String, String, Integer>> aircrafts =
+    	      env.readCsvFile(fileloc+"ontimeperformance_aircrafts.csv")
+    	      .includeFields("101010001")// Take tail number, manufacturer, model no, and year so we can edit this to 1 for summation later
+    	      .ignoreFirstLine()
+    	      .ignoreInvalidLines()
+    	      .types(String.class, String.class, String.class, Integer.class);
     
-    
-    
-    Table orderedresult = airc.join(flig).where("tailnumber = tail_numberflights").select("manufacturer, model");
-    
-    
-    Table result = orderedresult.groupBy("model").select("model,model.count as frequency");
-    //result = result.orderBy("frequncy");
-    //Table result = orderedresult.select("COUNT(model)");
-    
-    //Table result1 = result.orderBy("frequency.asc").offset(3).select("model, frequency");
-    
-    // output final result
-    result.writeToSink(new CsvTableSink(output_filepath, "\t", 1, WriteMode.OVERWRITE));
+   
+	DataSet<Tuple4<String, String, String, Integer>> cessnaaircraft = 
+    		aircrafts.filter(new FilterFunction<Tuple4<String,String, String, Integer>>(){
+    	     public boolean filter(Tuple4<String,String, String, Integer> entry) {
+    	    	   return entry.f1.equals("CESSNA"); //filter only planes manufactured by Cessna
+    	    }
+    });
+	
+	DataSet<Tuple4<String, String, String, Integer>> cessnacount = cessnaaircraft.flatMap(new cesMapper()); //Change CESSNA to Cessna and change year to 1 
+    		
+	
+     DataSet<Tuple1<String>> flights =
+       env.readCsvFile(fileloc+"ontimeperformance_flights_medium.csv")
+       .includeFields("000000100000") // Take tail number only
+       .ignoreFirstLine()
+       .ignoreInvalidLines()
+       .types(String.class);
 
-    // output execution plan
-    //System.out.println(env.getExecutionPlan());
-
+     
+    DataSet<Tuple3<String, String,Integer>> joinresult =
+    		flights.join(cessnacount).where(0).equalTo(0) //join flights with tail number so we get all the flights
+    		.projectSecond(1,2,3); //only copy manufacturer, model no and 1
+    
+       
+    
+    DataSet<Tuple2< String,Integer>> result = joinresult.flatMap(new concats()); // Concatenates Cessna with model no and reduces model no to 3 digits  
+    
+    result.groupBy(0)	 //group each model
+    .sum(1)    			 // count how number of each model
+    .sortPartition(1, Order.DESCENDING) // order models by most popular
+    .first(3)    		 //only output the top 3 models 
+    .writeAsCsv(output_filepath);
+    		
+    		
     // execute the FLink job
-    env.execute("Executing program");
+    env.execute("Executing task 1");
 
-    
-    // alternatively: get execution plan
-    // System.out.println(env.getExecutionPlan());
-
-    // wait 20secs at end to give us time to inspect ApplicationMAster's WebGUI
+    // wait 20secs at end to give us time to inspect ApplicationMaster's WebGUI
     Thread.sleep(20000);
   }
+  @SuppressWarnings("serial")
+  private static class cesMapper implements FlatMapFunction<Tuple4<String, String, String, Integer>, Tuple4<String, String, String, Integer>> {
+	   public void flatMap( Tuple4<String, String, String,Integer> input_tuple, Collector<Tuple4<String, String, String, Integer>> out) {
+	    	out.collect(new Tuple4<String, String, String,Integer> (input_tuple.f0,"Cessna",input_tuple.f2, 1)); 
+	  }
+  }
+  
+  @SuppressWarnings("serial")
+  private static class concats implements FlatMapFunction<Tuple3<String, String, Integer>, Tuple2<String, Integer>>{
+	  public void flatMap( Tuple3<String, String, Integer> input_tuple, Collector<Tuple2<String, Integer>> output) {
+		  String model = input_tuple.f0.concat(" ");
+		  model = model.concat(input_tuple.f1); // adds model no to manufacturer string
+		  model = StringUtils.left(model, 10); // shortens string to 10 digits
+		  output.collect(new Tuple2<String,Integer> (model, input_tuple.f2));
+	  }
+  }
+ 
 }
