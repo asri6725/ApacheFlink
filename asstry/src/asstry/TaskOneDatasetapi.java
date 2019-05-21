@@ -11,6 +11,15 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.api.java.utils.ParameterTool;
 
+
+import org.apache.flink.table.api.java.BatchTableEnvironment;
+import org.apache.flink.table.sinks.CsvTableSink;
+import org.apache.flink.table.sources.TableSource;
+import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.java.*;
+
+
 public class TaskOneDatasetapi {
 	public static void main(String[] args) throws Exception{
 		//get output file
@@ -28,7 +37,7 @@ public class TaskOneDatasetapi {
 				.ignoreFirstLine()
 				.ignoreInvalidLines()
 				.types(Integer.class, String.class);
-		
+		/*
 		
 		DataSet<Tuple2<Integer, Integer>> sids = 
 				env.readCsvFile(infile+"book1.csv")
@@ -40,8 +49,20 @@ public class TaskOneDatasetapi {
 		DataSet<Tuple2<Tuple2<Integer, Integer>, Tuple2<Integer, String>>> joined = sids.join(names)
 				.where(0).equalTo(0);
 		
-		
+		*//*
 		joined.writeAsCsv(output_filepath, WriteMode.OVERWRITE);
+		*/
+		
+		// get a TableEnvironment
+	    BatchTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
+	    
+	    Table out = tableEnv.fromDataSet(names, "id, name");
+	    
+//		Table out = in.groupBy("id").select("id, name");
+	    
+	    // output final result
+	    out.writeToSink(new CsvTableSink(output_filepath, ",", 1, WriteMode.OVERWRITE));
+
 		
 		env.execute("Testing !!!");
 		Thread.sleep(20000);

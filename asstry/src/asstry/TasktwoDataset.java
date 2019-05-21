@@ -18,6 +18,12 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.api.java.utils.ParameterTool;
 
+import org.apache.flink.table.api.java.BatchTableEnvironment;
+import org.apache.flink.table.sinks.CsvTableSink;
+import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.java.*;
+
 public class TasktwoDataset {
 	public static class longconverter implements MapFunction<Tuple3<String, String, String>, Tuple2<String, Long>> {
 		  @Override
@@ -56,19 +62,19 @@ public class TasktwoDataset {
 			//obtain handle to execution environment
 			ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 			
-			//define a sid dataset
+			//read the airlines file
 			DataSet<Tuple3<String, String, String>> airlines = 
 					env.readCsvFile(inpath+inpa1)
 					.includeFields("111")
 					.ignoreFirstLine()
 					.ignoreInvalidLines()
 					.types(String.class, String.class, String.class);
-			
+			//filter country to united states
 			DataSet<Tuple3<String, String, String>> planes = airlines.filter(new FilterFunction<Tuple3<String, String, String>>() {
                 public boolean filter(Tuple3<String, String, String> entry) {return entry.f2.equals("United States"); }
          });
 			
-			
+			//read aircrafts
 			
 			DataSet<Tuple3<String, String, String>> aircraft = 
 					env.readCsvFile(inpath+inpa2)
@@ -76,18 +82,19 @@ public class TasktwoDataset {
 					.ignoreFirstLine()
 					.ignoreInvalidLines()
 					.types(String.class, String.class, String.class);
+			// remove empty(cancelled) flights by checking sizee
 		DataSet<Tuple3<String, String, String>> aaircraft = aircraft.filter(new FilterFunction<Tuple3<String, String, String>>() {
                 public boolean filter(Tuple3<String, String, String> entry) {return entry.f1.length()>3 && entry.f2.length()>3; }
          });
 
-			
+			// check the actual from scheduled and find delay in minutes
 			DataSet<Tuple2<String, Long>> aircraftproper = aaircraft.map(new longconverter());
 			
-			
+			// remove -ve or 0 "delays" as they arent delays
 			DataSet<Tuple2<String, Long>> flights = aircraftproper.filter(new FilterFunction<Tuple2<String, Long>>() {
                 public boolean filter(Tuple2<String, Long> entry) {return entry.f1>0; }
          });
-			
+			//join with airlines
 			DataSet<Tuple2<Tuple3<String, String, String>, Tuple2<String, Long>>> result = 
 					planes.join(flights)
 					.where(0)
@@ -98,8 +105,19 @@ public class TasktwoDataset {
 			// And make it to To one tuple of <name, delays>
 			DataSet<Tuple2<String, Long>> promislast = result.map(new cleantuple());
 			
+			// get a TableEnvironment
+		    BatchTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
+		    
+		    Table out = tableEnv.fromDataSet(promislast, "name, delay");
 			
-			promislast.writeAsCsv(output_filepath, WriteMode.OVERWRITE);
+		    //do the delay count, average, min, max 
+		    Table res = out.groupBy("name").select("name, delay.count as count, delay.avg as average, delay.min as min, delay.max as max");
+		    res = res.orderBy("name");
+		    // output final result
+		    res.writeToSink(new CsvTableSink(output_filepath, "\t", 1, WriteMode.OVERWRITE));
+
+		    
+			//promislast.writeAsCsv(output_filepath, WriteMode.OVERWRITE);
 			env.execute("Executing sample1 program");
 			//Thread.sleep(20000);
 			
