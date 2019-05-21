@@ -23,5 +23,21 @@
 	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/opt/flink-s3-fs-hadoop-1.4.2.jar"/>
 	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/opt/flink-s3-fs-presto-1.4.2.jar"/>
 	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/opt/flink-table_2.11-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-cep_2.11-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-cep-scala_2.11-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-gelly_2.11-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-gelly-scala_2.11-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-metrics-datadog-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-metrics-dropwizard-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-metrics-ganglia-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-metrics-graphite-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-metrics-prometheus-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-metrics-slf4j-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-metrics-statsd-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-ml_2.11-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-queryable-state-runtime_2.11-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-s3-fs-hadoop-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-s3-fs-presto-1.4.2.jar"/>
+	<classpathentry kind="lib" path="D:/hadoop/flink-1.4.2/lib/flink-table_2.11-1.4.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
