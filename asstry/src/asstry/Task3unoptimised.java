@@ -83,7 +83,7 @@ public class Task3unoptimised {
 		DataSet<Tuple2< String,String>> aircraftcon = aircrafts.flatMap(new concats()); // Concatenates Cessna with model no and reduces model no to 3 digits
 	    
 	    DataSet<Tuple3<String, String,Integer>> aircraftjoin =
-	    		aircraftcon.join(cairports).where(1).equalTo(1) //join flights with tail number so we get all the flights
+	    		aircraftcon.join(cairports).where(1).equalTo(0) //join flights with tail number so we get all the flights
 	    		.projectFirst(0) // plane make
 	    		.projectSecond(0,1); //airline code, 1airport
 	    
