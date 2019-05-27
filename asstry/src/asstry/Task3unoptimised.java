@@ -22,6 +22,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableEnvironment;
@@ -36,6 +37,8 @@ public class Task3unoptimised {
 	@SuppressWarnings({ "serial", "unchecked" })
 	public static <R> void main(String[] args) throws Exception {
 
+	    final ParameterTool params = ParameterTool.fromArgs(args);
+	    String country = params.get("country", "USA");
 		
 	    String fileloc = "/C:/Users/Abhi/Desktop/assignment_data_files/"; //data file locations
 	    String output_filepath = "/C:/Users/Abhi/Desktop/Task3unopt.csv"; //result output location
@@ -64,8 +67,7 @@ public class Task3unoptimised {
 	    		flights.join(cairportss).where(1).equalTo(0) //join by airport code
 	    		.projectFirst(0,2);
 	    
-	    String country = "USA";
-		DataSet<Tuple2<String, Integer>> cairports = 
+	    DataSet<Tuple2<String, Integer>> cairports = 
 	    		joinresult.filter(new FilterFunction<Tuple2<String,Integer>>(){
 	    	     public boolean filter(Tuple2<String,Integer> entry) {
 	    	    	   return entry.f0.equals(country);} //filter only airports in the country

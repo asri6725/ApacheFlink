@@ -22,6 +22,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableEnvironment;
@@ -40,6 +41,10 @@ public class Task3 {
 	    String fileloc = "/C:/Users/Abhi/Desktop/assignment_data_files/"; //data file locations
 	    String output_filepath = "/C:/Users/Abhi/Desktop/Task3.txt"; //result output location
 	    
+	    final ParameterTool params = ParameterTool.fromArgs(args);
+	    String country = params.get("country", "USA");
+
+	    
 	    ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment(); 
 		   
 	    DataSet<Tuple2<String, String>> airports =
@@ -49,8 +54,7 @@ public class Task3 {
 	    	      .ignoreInvalidLines()
 	    	      .types(String.class, String.class);
 	    
-	    String country = "USA";
-		DataSet<Tuple2<String, String>> cairports = 
+	    DataSet<Tuple2<String, String>> cairports = 
 	    		airports.filter(new FilterFunction<Tuple2<String,String>>(){
 	    	     public boolean filter(Tuple2<String,String> entry) {
 	    	    	   return entry.f1.equals(country);} //filter only airports in the country
