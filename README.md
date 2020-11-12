@@ -4,6 +4,8 @@ The code in src/ does the following things:
 2. Show the min, max, avg and the amount of delay (in minutes) for each airline going to the US or as defined in main params.
 3. Find all the "Cessna" made flights in the US or as defined in the parameters and show the top 5 most used models.
 
+The project mainly revolves around implementing the SQL using Apache FLink, but we cannot really "use" sql.
+
 # Job Design Documentation:
 
 ## Task 1: 
