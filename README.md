@@ -1,8 +1,8 @@
 # Brief  
 The code in src/ does the following things:
 1. Task 1: From the data filter "Cessna" manufactured planes, and show the top 3 models most made models (highest number of planes for the models).
-2. Show the min, max, avg and the amount of delay (in minutes) for each airline going to the US or as defined in main params.
-3. Find all the "Cessna" made flights in the US or as defined in the parameters and show the top 5 most used models.
+2. Task 2: Show the min, max, avg and the amount of delay (in minutes) for each airline going to the US or as defined in main params.
+3. Task 3: Find all the "Cessna" made flights in the US or as defined in the parameters and show the top 5 most used models.
 
 The project mainly revolves around implementing the SQL using Apache FLink, but we cannot really "use" sql.
 
